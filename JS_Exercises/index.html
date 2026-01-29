@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<script>
+  var lastInputIsSymbol = false; // 追蹤最後一個輸入是否為符號
+  var FirstInput = false; // 追蹤第一個輸入是否為符號
+  var hasInputStarted = false; // 是否輸入
+  var result = 0; //計算結果
+  var memoryValue = 0; //記憶
+  var lastOperation = null; //符號為空
+  var lastOperand = null; //數字為空
+
+  function isSymbol(value) {
+    // 這個函數用來檢查是否為符號
+    var symbols = ["+", "-", "*", "/", "."]; //定義符號
+    return symbols.includes(value); //檢查是否再符號中
+  }
+
+  function appendToDisplay(value) {
+    //數字
+    var currentDisplay = document.getElementById("display").textContent; //顯示內容
+    var lastNum = currentDisplay.split(/[-+*/]/).pop(); //抓最後一個數字
+    var lastChar = currentDisplay.charAt(currentDisplay.length - 1); //抓最後一個字符
+
+    if (FirstInput) {
+      if (!isNumber(value) && value !== ".") {
+        // 如果第一個輸入不是數字或小數點,不執行任何操作
+        return;
+      }
+      FirstInput = false;
+    }
+
+    if (lastInputIsSymbol && isSymbol(value)) {
+      return; // 如果是連續兩個符號，不執行
+    }
+
+    if (value === ".") {
+      if (!lastNum.includes(".") && !currentDisplay.endsWith(".")) {
+        document.getElementById("display").textContent += value; //沒有小數點，添加
+      }
+    } else {
+      if (/\d/.test(value)) {
+        if (currentDisplay !== "0") {
+          document.getElementById("display").textContent += value; // 如果是數字，直接添加
+        } else {
+          document.getElementById("display").textContent = value; // 如果是0,輸入肚數字取代0
+        }
+      } else {
+        if ("+-*/".includes(value)) {
+          if (currentDisplay == "") {
+            return;
+          } else {
+            if ("+-*/".includes(lastChar)) {
+              document.getElementById("display").textContent =
+                currentDisplay.slice(0, -1) + value; // 如果最後一個字符是運算符號，則替換掉
+            } else {
+              document.getElementById("display").textContent += value; // 否則直接添加
+            }
+          }
+        }
+      }
+    }
+
+    if (!isNaN(value) || value === ".") {
+      lastOperation = null; // 清除上一次的符號
+      lastOperand = null; // 清除上一次的數字
+    }
+  }
+
+  function clearDisplay(value) {
+    //清除
+    var currentDisplay = document.getElementById("display").textContent;
+
+    document.getElementById("display").textContent = "";
+    document.getElementById("old_display").value = "";
+    lastOperation = null;
+    lastOperand = null;
+    hasInputStarted = false;
+  }
+
+  function calculateResult() {
+    //計算
+    var old_result = document.getElementById("display").textContent;
+    var input = display.textContent;
+    var matches = input.match(/([+*\/-])(-?\d*\.?\d+)$/);
+    var lastNum;
+    var secondLastElem;
+    var result;
+
+    if (input.includes("/0")) {
+      display.textContent = "不能除以0喔";
+      return;
+    }
+
+    try {
+      if (lastOperation && lastOperand) {
+        //這兩個為true
+        // 執行上一次的操作
+        display.textContent = eval(
+          input + lastOperation + lastOperand
+        ).toString();
+        old_result = input + lastOperation + lastOperand;
+        document.getElementById("old_display").value = old_result;
+        document.getElementById("display").textContent = display.textContent;
+      } else {
+        // 使用正則表達式取得所有數字和運算符
+        input = input.replace(/(^|[^\d.])\.(\d+)/g, "$10.$2");
+        //小數點數字 整數 運算符
+        if (matches) {
+          lastNum = matches[matches.length - 1]; //存mathches的最後一個匹配項
+          secondLastElem = matches[matches.length - 2]; //存mathches的倒數第二個匹配項
+
+          if (!isNaN(lastNum) && isNaN(secondLastElem)) {
+            //最後一個是否為數字
+            lastOperand = lastNum; //把matches抓到的存給lastOperand
+            lastOperation = secondLastElem; //把matches抓到的存給lastOperation
+          }
+        }
+
+        // 使用 eval 計算結果
+        result = parseFloat(eval(input).toFixed(11)).toString();
+
+        // 顯示計算結果
+        document.getElementById("display").textContent = result;
+
+        // 將原始輸入顯示在 old_display 中
+        document.getElementById("old_display").value = input;
+      }
+    } catch (e) {
+      // 如果計算有誤，顯示錯誤信息
+      display.textContent = "計算錯誤";
+    }
+  }
+
+  function toggleSign() {
+    var display = document.getElementById("display");
+    var currentValue = display.textContent;
+    var lastNumberMatch = currentValue.match(/([-+*/]?)(-?[\d.]+)$/);
+    var operator = lastNumberMatch ? lastNumberMatch[1] : "";
+    var lastNumber = lastNumberMatch ? lastNumberMatch[2] : "";
+    var beforeLastNumber = currentValue.slice(
+      0,
+      currentValue.lastIndexOf(operator + lastNumber)
+    );
+
+    switch (currentValue) {
+      case "":
+        display.textContent = "-";
+        break;
+      case "-":
+        display.textContent = "";
+        break;
+      case "+":
+        display.textContent = "-";
+        break;
+      default:
+        if (lastNumberMatch) {
+          switch (operator) {
+            case "+":
+              display.textContent = beforeLastNumber + "-" + lastNumber;
+              break;
+            case "-":
+              if (beforeLastNumber === "") {
+                display.textContent = lastNumber;
+              } else {
+                display.textContent = beforeLastNumber + "+" + lastNumber;
+              }
+              break;
+            case "*":
+            case "/":
+              if (lastNumber.startsWith("-")) {
+                display.textContent =
+                  beforeLastNumber + operator + lastNumber.slice(1);
+              } else {
+                display.textContent =
+                  beforeLastNumber + operator + "-" + lastNumber;
+              }
+              break;
+            default:
+              if (lastNumber.startsWith("-")) {
+                display.textContent = beforeLastNumber + lastNumber.slice(1);
+              } else {
+                display.textContent = beforeLastNumber + "-" + lastNumber;
+              }
+              break;
+          }
+        }
+        break;
+    }
+  }
+
+  function memoryDisplay(action) {
+    var currentValue = document.getElementById("display").textContent;
+    var currentValue = document.getElementById("display").textContent;
+
+    switch (action) {
+      case "MC":
+        memoryValue = 0;
+        break;
+      case "M+":
+        memoryValue += parseFloat(currentValue);
+        break;
+      case "M-":
+        memoryValue -= parseFloat(currentValue);
+        break;
+      case "MR":
+        document.getElementById("display").textContent = memoryValue;
+        document.getElementById("old_display").textContent = "";
+        break;
+    }
+  }
+
+  function backspace() {
+    var currentDisplay = display.textContent; // 抓顯示的內容
+
+    if (currentDisplay.length > 0)
+      display.textContent = currentDisplay.slice(0, -1);
+
+    hasInputStarted = true;
+  }
+</script>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>計算機</title>
+    <link rel="stylesheet" href="css/index.css" />
+  </head>
+  <body>
+    <div class="container">
+      <input type="text" id="old_display" readonly />
+      <div id="displays">
+        <div readonly id="display"></div>
+      </div>
+      <div class="grid1">
+        <input
+          type="button"
+          class="button1"
+          onclick="memoryDisplay('MC');"
+          value="MC"
+        />
+        <input
+          type="button"
+          class="button1"
+          onclick="memoryDisplay('MR');"
+          value="MR"
+        />
+        <input
+          type="button"
+          class="button1"
+          onclick="memoryDisplay('M+');"
+          value="M+"
+        />
+        <input
+          type="button"
+          class="button1"
+          onclick="memoryDisplay('M-');"
+          value="M-"
+        />
+        <input type="button" class="button1" onclick="backspace()" value="←" />
+      </div>
+      <div class="grid">
+        <input
+          type="button"
+          onclick="appendToDisplay('7')"
+          class="button"
+          value="7"
+        />
+        <input
+          type="button"
+          onclick="appendToDisplay('8')"
+          class="button"
+          value="8"
+        />
+        <input
+          type="button"
+          onclick="appendToDisplay('9')"
+          class="button"
+          value="9"
+        />
+        <input
+          type="button"
+          onclick="appendToDisplay('/')"
+          class="button1"
+          value="÷"
+        />
+      </div>
+      <div class="grid">
+        <input
+          type="button"
+          onclick="appendToDisplay('4')"
+          class="button"
+          value="4"
+        />
+        <input
+          type="button"
+          onclick="appendToDisplay('5')"
+          class="button"
+          value="5"
+        />
+        <input
+          type="button"
+          onclick="appendToDisplay('6')"
+          class="button"
+          value="6"
+        />
+        <input
+          type="button"
+          onclick="appendToDisplay('*')"
+          class="button1"
+          value="×"
+        />
+      </div>
+      <div class="grid">
+        <input
+          type="button"
+          onclick="appendToDisplay('1')"
+          class="button"
+          value="1"
+        />
+        <input
+          type="button"
+          onclick="appendToDisplay('2')"
+          class="button"
+          value="2"
+        />
+        <input
+          type="button"
+          onclick="appendToDisplay('3')"
+          class="button"
+          value="3"
+        />
+        <input
+          type="button"
+          onclick="appendToDisplay('-')"
+          class="button1"
+          value="－"
+        />
+      </div>
+      <div class="grid">
+        <input type="button" onclick="toggleSign()" class="button" value="±" />
+        <input
+          type="button"
+          onclick="appendToDisplay('0')"
+          class="button"
+          value="0"
+        />
+        <input
+          type="button"
+          onclick="appendToDisplay('.')"
+          class="button"
+          value="."
+        />
+        <input
+          type="button"
+          onclick="appendToDisplay('+')"
+          class="button1"
+          value="+"
+        />
+      </div>
+      <div class="grid_last">
+        <input
+          type="button"
+          class="button"
+          value="C"
+          onClick="clearDisplay()"
+        />
+        <input
+          type="button"
+          class="button"
+          value="="
+          onDblClick="calculastresult()"
+          onClick="calculateResult()"
+        />
+      </div>
+    </div>
+  </body>
+</html>

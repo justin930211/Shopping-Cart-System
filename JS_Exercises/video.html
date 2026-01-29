@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>影片播放</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/2.1.0/uicons-solid-rounded/css/uicons-solid-rounded.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/2.1.0/uicons-solid-straight/css/uicons-solid-straight.css"
+    />
+  </head>
+  <style>
+    body {
+      background-color: beige;
+    }
+    main {
+      width: 628px;
+      position: relative;
+      margin: auto;
+    }
+    .p1 {
+      width: 450px;
+      display: grid;
+      grid-template-columns: 44.6% 1fr;
+    }
+    .s1 {
+      margin-top: -2px;
+    }
+  </style>
+  <body>
+    <main>
+      <div id="arba">
+        <video id="Video">
+          <source src="video/bird.mp4" type="Video/mp4" />
+        </video>
+        <br />
+        <button value="播放" id="startplay">
+          <i class="fi fi-sr-play"></i>
+        </button>
+        <br /><br />
+        <input type="button" value="1倍速" id="speed1" />
+        <input type="button" value="0.5倍速" id="speed0.5" />
+        <input type="button" value="2倍速" id="speed2" /><br />
+        <h3 id="speed">倍速：1</h3>
+        <button value="倒退10秒" id="back10">
+          <i class="fi fi-ss-rewind"></i>
+        </button>
+        <button value="快進10秒" id="fast10">
+          <i class="fi fi-ss-forward"></i></button
+        ><br /><br />
+        <input type="button" value="循環播放" id="repeat" /><br /><br />
+        影片長度<input
+          type="range"
+          id="videoSeekBar"
+          min="0"
+          max="100"
+          step="0.1"
+          value="0"
+        />
+        音量<input
+          type="range"
+          id="volumeControl"
+          min="0"
+          max="1"
+          step="0.01"
+          value="1"
+        />
+        <div class="p1">
+          <p>播放時間： <span id="currentTimeDisplay">00:00</span></p>
+          <p>音量：<span id="volume">100%</span></p>
+        </div>
+        <p class="s1">總長： <span id="durationDisplay">00:00</span></p>
+      </div>
+      <button id="btnSave" class="btn btn-danger" onclick="screenshot()">
+        下載圖片
+      </button>
+    </main>
+  </body>
+</html>
+<script>
+  var Video = {
+    state: true, //播放狀態
+    object: document.getElementById("Video"), //影片
+    startplay: document.getElementById("startplay"), //播放
+    speed1: document.getElementById("speed1"), //倍速1
+    speed05: document.getElementById("speed0.5"), //倍速0.5
+    speed2: document.getElementById("speed2"), //倍速2
+    speed: document.getElementById("speed"), //倍速顯示
+    repeat: document.getElementById("repeat"), //重複播放
+    loop: false, //重複播放狀態
+    fast10: document.getElementById("fast10"), //快進10
+    back10: document.getElementById("back10"), //倒退10
+    videoSeekBar: document.getElementById("videoSeekBar"),
+    volumeControl: document.getElementById("volumeControl"),
+    currentTime: 0, // 当前播放时间，初始为0
+    duration: 0,
+
+    controlPlay: function () {
+      this.object.play();
+    },
+  };
+  //---------------------播放暫停-----------------//
+  Video.startplay.addEventListener("click", function (event) {
+    var icon = this.querySelector("i");
+
+    if (Video.state) {
+      Video.state = false;
+      Video.controlPlay();
+      icon.classList.remove("fi-sr-play");
+      icon.classList.add("fi-sr-pause");
+    } else {
+      Video.state = true;
+      Video.object.pause();
+      icon.classList.remove("fi-sr-pause");
+      icon.classList.add("fi-sr-play");
+    }
+  });
+
+  Video.videoSeekBar.addEventListener("mousedown", (e) => {
+    //紀錄滑鼠事件
+    Video.state = true;
+    Video.object.pause();
+    Video.startplay.value = "播放";
+  });
+
+  Video.videoSeekBar.addEventListener("mouseup", (e) => {
+    //紀錄滑鼠事件
+    Video.state = false;
+    Video.controlPlay();
+    Video.startplay.value = "暫停";
+  });
+  //-------------------倍速-----------------------//
+  Video.speed1.addEventListener("click", function (e) {
+    Video.object.playbackRate = 1;
+    speed.innerHTML = "倍速：1";
+  });
+  Video.speed05.addEventListener("click", function (e) {
+    Video.object.playbackRate = 0.5;
+    speed.innerHTML = "倍速：0.5";
+  });
+  Video.speed2.addEventListener("click", function (e) {
+    Video.object.playbackRate = 2;
+    speed.innerHTML = "倍速：2";
+  });
+
+  //-----------------快進到退---------------//
+  Video.fast10.addEventListener("click", function (e) {
+    Video.object.currentTime += 10;
+  });
+
+  Video.back10.addEventListener("click", function (e) {
+    Video.object.currentTime -= 10;
+  });
+  //-----------------重複播放---------------//
+  Video.repeat.addEventListener("click", function (event) {
+    if (Video.loop) {
+      Video.loop = false;
+      Video.object.loop = Video.loop; // 設置為不循環播放
+      Video.repeat.value = "循環播放";
+    } else {
+      Video.loop = true;
+      Video.object.loop = Video.loop; // 設置為循環播放
+      Video.repeat.value = "不循環播放";
+    }
+  });
+  //-------------音量----------------------//
+  Video.volumeControl.addEventListener("input", function () {
+    Video.object.volume = volumeControl.value; // 使用Video.object設置音量
+    document.getElementById("volume").textContent =
+      Math.round(Video.object.volume * 100, 2) + "%";
+  });
+
+  //-----------------影片長度----------------//
+  Video.object.addEventListener("loadedmetadata", function () {
+    var minute;
+    var sound;
+    Video.duration = Video.object.duration; // 抓影片總時
+
+    minute = Math.floor(Video.duration / 60); //分鐘數
+    sound = Math.floor(Video.duration % 60); //秒數
+
+    document.getElementById("durationDisplay").textContent =
+      padZero(minute) + ":" + padZero(sound); // 顯示總時長
+  });
+
+  Video.object.addEventListener("timeupdate", updateTime); // 加時間更新的監聽
+
+  Video.videoSeekBar.addEventListener("input", function () {
+    var minute;
+    var scound;
+    var progressValue = Video.videoSeekBar.value;
+    var newCurrentTime = (progressValue / 100) * Video.duration;
+    minute = Math.floor(newCurrentTime / 60);
+    scound = Math.floor(newCurrentTime % 60);
+
+    Video.object.removeEventListener("timeupdate", updateTime); // 先移除避免循環觸發
+    Video.object.currentTime = newCurrentTime; // 抓當前時間
+    document.getElementById("currentTimeDisplay").textContent =
+      minute + ":" + scound; // 顯示更新後的時間
+
+    Video.object.addEventListener("timeupdate", updateTime); // 重新佳回時間更新監聽
+  });
+
+  function updateTime() {
+    var progressValue = (Video.object.currentTime / Video.duration) * 100;
+    var Minutes = Math.floor(Video.object.currentTime / 60);
+    var Seconds = Math.floor(Video.object.currentTime % 60);
+
+    Video.videoSeekBar.value = progressValue; // 更新長度
+    document.getElementById("currentTimeDisplay").textContent =
+      padZero(Minutes) + ":" + padZero(Seconds);
+  }
+
+  // 兩位數如果是各位數補0
+  function padZero(num) {
+    return num < 10 ? "0" + num : num.toString();
+  }
+  //-------------------螢幕擷取------------------------//
+  function screenshot() {
+    html2canvas(document.getElementById("Video")).then(function (canvas) {
+      var image = document.createElement("a");
+
+      image.href = canvas
+        .toDataURL("image/jpeg")
+        .replace("image/jpeg", "image/octet-stream");
+      image.download = "image.jpg";
+      image.click();
+    });
+  }
+</script>

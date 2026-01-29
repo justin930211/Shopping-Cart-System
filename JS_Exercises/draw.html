@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>小畫家</title>
+    <link rel="stylesheet" href="css/index.css" />
+  </head>
+
+  <body>
+    <main>
+      <canvas id="canvas" width="800" height="400"></canvas>
+      <div class="container">
+        <div class="RGB">
+          <h2>RGB</h2>
+          R<input
+            type="range"
+            id="sliderR"
+            name="slider"
+            min="0"
+            max="255"
+            value="0"
+          /><br /><br />
+          G<input
+            type="range"
+            id="sliderG"
+            name="slider"
+            min="0"
+            max="255"
+            value="0"
+          /><br /><br />
+          B<input
+            type="range"
+            id="sliderB"
+            name="slider"
+            min="0"
+            max="255"
+            value="0"
+          /><br /><br />
+          <div id="colorBox"></div>
+          <div class="RGBp">
+            <p id="sliderValueR">R：0</p>
+            <p id="sliderValueG">G：0</p>
+            <p id="sliderValueB">B：0</p>
+          </div>
+        </div>
+        <div class="eraser">
+          <h2>橡皮擦</h2>
+          <input type="checkbox" id="eraserClear" onchange="toggleEraser()" />
+          <p id="sliderValueEraserBlod">粗度：5</p>
+          <input type="range" id="eraserBlod" min="1" max="10" value="5" />
+        </div>
+        <div class="pen">
+          <h2>畫筆</h2>
+          <p id="sliderValuePenBlod">粗度：5</p>
+          <input type="range" id="penBlod" min="1" max="10" value="5" />
+        </div>
+        <div class="otherpen">
+          <h2>畫筆樣式</h2>
+          <select id="brushStyle">
+            <option value="butt">平直</option>
+            <option value="round">圓型</option>
+            <option value="star">星星</option>
+            <option value="circle">圓圈</option>
+            <option value="spray">噴漆</option>
+            <option value="water">水彩</option>
+          </select>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
+
+<script>
+  var sliderR = document.getElementById("sliderR"); //inputR
+  var sliderG = document.getElementById("sliderG"); //inputG
+  var sliderB = document.getElementById("sliderB"); //inputB
+  var ereserBlod = document.getElementById("ereserBlod"); //input橡皮擦粗度
+  var penBlod = document.getElementById("penBlod"); //input橡皮擦粗度
+  var sliderValueR = document.getElementById("sliderValueR"); //顯示數字R
+  var sliderValueG = document.getElementById("sliderValueG"); //顯示數字G
+  var sliderValueB = document.getElementById("sliderValueB"); //顯示數字B
+  var sliderValueBlod = document.getElementById("sliderValueBlod"); //顯示數字橡皮擦
+  var sliderValuepenBlod = document.getElementById("sliderValuepenBlod"); //顯示數字筆刷
+  var canvas = document.getElementById("canvas"); //抓canvas的值
+  var ctx = canvas.getContext("2d"); //2d平面
+  var isDrawing = false; //是否有畫畫
+  var lastX = 0; //x軸座標
+  var lastY = 0; //y軸座標
+  ctx.lineWidth = 5; //初始粗度
+  var eraser = false;
+  var currentBrushStyle = "round";
+  var brushStyleSelect = document.getElementById("brushStyle");
+
+  //---------------------滑鼠-----------------------------//
+  canvas.addEventListener("mousedown", (e) => {
+    //紀錄滑鼠事件
+    isDrawing = true; //讓畫畫觸發
+    [lastX, lastY] = [e.offsetX, e.offsetY]; //紀錄滑鼠的位置
+  });
+
+  canvas.addEventListener("mousemove", draw); //再畫布上移動滑鼠觸發畫畫
+  canvas.addEventListener("mouseup", () => (isDrawing = false)); //左鍵放開後停止畫畫
+  canvas.addEventListener("mouseout", () => (isDrawing = false)); //滑鼠離開畫布時停止
+
+  //---------------------------顏色--------------------------//
+  sliderR.addEventListener("input", function () {
+    //抓r的值顯示
+    sliderValueR.textContent = "R：" + sliderR.value;
+    updateColor();
+  });
+  sliderG.addEventListener("input", function () {
+    sliderValueG.textContent = "G：" + sliderG.value;
+    updateColor();
+  });
+  sliderB.addEventListener("input", function () {
+    sliderValueB.textContent = "B：" + sliderB.value;
+    updateColor();
+  });
+
+  //----------------畫筆粗度---------------------------//
+  // 畫筆粗度改變事件
+  penBlod.addEventListener("input", function () {
+    if (!eraser) {
+      updatePenWidth();
+    }
+  });
+
+  // 橡皮擦粗度改變事件
+  eraserBlod.addEventListener("input", function () {
+    if (eraser) {
+      updateEraserWidth();
+    }
+  });
+
+  // 切換橡皮擦事件
+  document
+    .getElementById("eraserClear")
+    .addEventListener("change", toggleEraser);
+
+  //-----------------進階畫筆選項--------------------------//
+  // 監聽畫筆樣式下拉選單的更改事件
+  brushStyleSelect.addEventListener("change", function () {
+    var selectedStyle = brushStyleSelect.value;
+
+    switch (selectedStyle) {
+      case "butt":
+        ctx.globalAlpha = 1;
+        ctx.lineCap = "butt";
+        break;
+      case "round":
+        ctx.globalAlpha = 1;
+        ctx.lineCap = "round";
+        break;
+      case "water":
+        ctx.lineCap = drawWatercolor();
+        ctx.globalAlpha = 0.5; //透明度
+        break;
+      default:
+        ctx.globalAlpha = 1;
+    }
+  });
+
+  //-----------------------滑鼠----------------------//
+  function getMousePos(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    // 計算並返回鼠標在畫布上的位置
+    // evt.clientX 和 evt.clientY 獲取鼠標相對於視窗的位置
+    // rect.left 和 rect.top 為畫布左上角相對於視窗的位置
+    // 鼠標在畫布上的 x 座標是鼠標的視窗 x 座標減去畫布的視窗 x 座標
+    // 鼠標在畫布上的 y 座標是鼠標的視窗 y 座標減去畫布的視窗 y 座標
+    return {
+      x: evt.clientX - rect.left,
+      y: evt.clientY - rect.top,
+    };
+  }
+  //-----------------------顏色----------------------//
+  function updateColor() {
+    // 抓RGB值
+    var r = sliderR.value;
+    var g = sliderG.value;
+    var b = sliderB.value;
+
+    // 設置背景顏色
+    colorBox.style.backgroundColor = "rgb(" + r + "," + g + "," + b + ")";
+  }
+
+  function getSelectedColor() {
+    //回傳顏色
+    var r = sliderR.value;
+    var g = sliderG.value;
+    var b = sliderB.value;
+    return "rgb(" + r + "," + g + "," + b + ")";
+  }
+
+  //-----------------筆刷橡皮擦粗度--------------------//
+  function toggleEraser() {
+    var checkEraser = document.getElementById("eraserClear").checked;
+    eraser = checkEraser;
+
+    if (eraser) {
+      // 激活橡皮擦时，固定样式为 round
+      selectedStyle = "round";
+      ctx.globalAlpha = 1;
+      ctx.lineCap = "round"; // 设置为圆形
+      ctx.globalCompositeOperation = "destination-out"; // 橡皮擦模式
+    } else {
+      // 离开橡皮擦模式时，恢复之前的笔刷样式
+      selectedStyle = brushStyleSelect.value;
+      ctx.globalCompositeOperation = "source-over"; // 画笔模式
+    }
+  }
+
+  // 更新畫筆粗度
+  function updatePenWidth() {
+    ctx.lineWidth = penBlod.value;
+    sliderValuePenBlod.textContent = "粗度：" + penBlod.value;
+  }
+
+  // 更新橡皮擦粗度
+  function updateEraserWidth() {
+    ctx.lineWidth = eraserBlod.value;
+    sliderValueEraserBlod.textContent = "粗度：" + eraserBlod.value;
+  }
+
+  //------------------畫筆-------------------------//
+  function draw(e) {
+    var selectedStyle = brushStyleSelect.value;
+    var x = e.clientX - canvas.offsetLeft;
+    var y = e.clientY - canvas.offsetTop;
+    var checkEraser = document.getElementById("eraserClear").checked;
+    eraser = checkEraser;
+
+    if (!isDrawing) return; //如果沒有畫畫回傳
+    else {
+      if (eraser) {
+        erase(e);
+      } else {
+        switch (selectedStyle) {
+          case "circle":
+            drawRandomCircle(e);
+            break;
+          case "star":
+            drawStar(e);
+            break;
+          case "spray":
+            createParticles(e);
+            break;
+          default:
+            ctx.beginPath(); //開始新的路徑
+            ctx.strokeStyle = getSelectedColor();
+            ctx.moveTo(lastX, lastY); //路徑的起點
+            ctx.lineTo(e.offsetX, e.offsetY); //結束點
+            ctx.stroke(); //顯示在畫布上
+            [lastX, lastY] = [e.offsetX, e.offsetY]; //紀錄當前的位置 下次再畫可以以這邊登起點
+        }
+      }
+    }
+  }
+
+  //-----------------橡皮擦-----------------------//
+  function erase(e) {
+    ctx.beginPath(); //開始新的路徑
+    ctx.moveTo(lastX, lastY); //路徑的起點
+    ctx.lineTo(e.offsetX, e.offsetY); //結束點
+    ctx.stroke(); //顯示在畫布上
+    [lastX, lastY] = [e.offsetX, e.offsetY]; //紀錄當前的位置 下次再畫可以以這邊登起點
+  }
+
+  //----------------進階畫筆樣式1-----------------//
+  function drawWatercolor(x1, y1, x2, y2) {
+    ctx.lineWidth = penBlod.value; //粗度
+    ctx.lineJoin = "round"; //連接原型
+    ctx.lineCap = "round"; //結束原型
+    ctx.globalCompositeOperation = "multiply"; //混合顏色
+    ctx.shadowBlur = 10; //模糊
+
+    ctx.strokeStyle = getSelectedColor();
+    ctx.beginPath();
+    ctx.moveTo(x1, y1); //移動到起始座標
+    ctx.lineTo(x2, y2); //畫一條到結束座標
+    ctx.stroke(); //繪製
+  }
+  //----------------進階畫筆樣式2-----------------//
+  function drawRandomCircle(e) {
+    var mousePos = getMousePos(canvas, e);
+    var radius = penBlod.value; // 隨機生成圓形半徑，範圍0到10
+    var x = mousePos.x;
+    var y = mousePos.y;
+
+    ctx.fillStyle = getSelectedColor(); // 設置填充顏色
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+    //x：圓心的 x 座標。
+    //y：圓心的 y 座標。
+    //radius：圓的半徑。
+    //startAngle：起始角度，以弧度表示，通常設定為 0。
+    //endAngle：結束角度，以弧度表示，通常設定為 Math.PI * 2，表示繪製一個完整的圓。
+    //anticlockwise：一個布林值，表示是否逆時針繪製圓形，通常設定為 false，表示順時針繪製。
+
+    ctx.fill();
+    ctx.closePath();
+  }
+  //----------------進階畫筆樣式3-----------------//
+  function drawStar(e) {
+    var mousePos = getMousePos(canvas, e);
+    var cx = mousePos.x;
+    var cy = mousePos.y;
+    var spikes = 5; // 星星的尖角數
+    var outerRadius = 10; // 星星外圈半徑
+    var innerRadius = 5; // 星星内圈半徑
+    var rot = (Math.PI / 2) * 3; // 初始的旋轉角度
+    var x = cx;
+    var y = cy;
+    var step = Math.PI / spikes; // 每一個尖角之間的角度差
+
+    ctx.fillStyle = getSelectedColor(); // 顏色
+    ctx.strokeStyle = getSelectedColor();
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - outerRadius); // 移動到星星的起始點，位於星星中心上方
+
+    for (var i = 0; i < spikes; i++) {
+      // 外圈尖角的坐標
+      x = cx + Math.cos(rot) * outerRadius;
+      y = cy + Math.sin(rot) * outerRadius;
+      ctx.lineTo(x, y); // 連接到外圈尖角坐標
+      rot += step;
+
+      // 內圈尖角的坐標
+      x = cx + Math.cos(rot) * innerRadius;
+      y = cy + Math.sin(rot) * innerRadius;
+      ctx.lineTo(x, y); // 連接回起始點，形成星星的輪廓
+      rot += step;
+    }
+
+    ctx.closePath();
+    ctx.lineTo(cx, cy - outerRadius); // 連接回起始點，形成星星的輪廓
+    ctx.stroke();
+    ctx.fill();
+  }
+  //----------------進階畫筆樣式4-----------------//
+  function createParticles(e) {
+    var mousePos = getMousePos(canvas, e); //滑鼠事件
+    var particleCount = 30; //粒子數30個
+    var cx = mousePos.x; //鼠標x
+    var cy = mousePos.y; //鼠標y
+    var offsetX; //鼠標x的篇移
+    var offsetY; //鼠標y的篇移
+
+    ctx.lineJoin = ctx.lineCap = "round"; //樣式
+    ctx.fillStyle = getSelectedColor(); //抓顏色
+
+    for (let i = 0; i < particleCount; i++) {
+      offsetX = (Math.random() - 0.5) * ctx.lineWidth * 2; //計算x方向的隨機篇移
+      offsetY = (Math.random() - 0.5) * ctx.lineWidth * 2; //計算y方向的隨機篇移
+      ctx.fillRect(cx + offsetX, cy + offsetY, 2, 2); //繪製2*2得方塊
+    }
+  }
+</script>
