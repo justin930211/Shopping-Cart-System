@@ -1,0 +1,397 @@
+<strong></strong>:root {
+  --hue-1: 257;
+  --hue-2: 47;
+  --bg-color: hsl(var(--hue-1), 100%, 97%);
+  --main-color-1: hsl(var(--hue-1), 100%, 60%);
+  --main-color-dark-1: hsl(var(--hue-1), 69%, 50%);
+  --main-color-2: hsl(var(--hue-2), 100%, 61%);
+  --main-color-dark-2: hsl(var(--hue-2), 82%, 55%);
+  --bg-color-1: hsl(var(--hue-1), 100%, 97%);
+  --bg-color-2: #fff;
+  --bg-color-3: hsl(var(--hue-1), 100%, 98%);
+  --bg-color-transparent: rgba(255, 255, 255, 0.6);
+  --heading-color: hsl(var(--hue-1), 61%, 24%);
+  --texr-color: hsl(var(--hue-1), 17%, 63%);
+  --section-padding: 7rem;
+}
+
+*,
+*::before,
+*::after {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box; /*確保元素的外觀和布局是一致*/
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+  background-color: var(--bg-color);
+  font-family: "Poppins", sans-serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+ul {
+  list-style: none; 
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 90rem;
+  padding: 0 1.5rem;
+  margin: 0 auto;
+}
+
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  transition: 0.3s;
+}
+
+header.scrolled {
+  background-color: var(--bg-color-transparent);
+  box-shadow: 0 5px 20px 0.1px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(15px);/*模糊*/
+}
+
+nav.container {
+  display: flex;/*彈性佈局*/
+  align-items: center;
+  flex-wrap: wrap;/*自動換行*/
+}
+
+header .logo {
+  height: 120px;
+  line-height: 120px;
+}
+
+header.scrolled .logo {
+  height: 80px;
+  line-height: 80px;
+}
+
+.sub-hedding {
+  color: var(--heading-color);
+  text-transform: uppercase;/*大寫*/
+  font-size: 1.25rem;
+  letter-spacing: 0.5px;
+  border-left: 3px solid var(--main-color-2);
+  padding: 0.13rem 0.75rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.heading {
+  color: var(--heading-color);
+  font-size: 3rem;
+  font-family: "Abril Fatface", cursive;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.text {
+  color: var(--texr-color);
+  font-size: 0.9rem;
+  margin: 2rem 0;
+  line-height: 2.3;
+}
+
+.section {
+  position: relative;
+  padding: var(--section-padding) 0;
+}
+
+.logo {
+  margin-right: 33.5rem;
+  height: 120px;
+  line-height: 120px;
+  font-family: "Abril Fatface", cursive;
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+  transition: 0.3s;
+  font-weight: bold;
+  transform: translateX(157px);
+	display: flex;
+	justify-content: center;/*垂直*/
+	align-items: center;/*水平*/
+}
+
+.links {
+  flex: 1;/*彈性增長 佔據剩餘的可用空間*/
+  display: flex;
+  justify-content: space-between;/*平均分配空間*/
+}
+
+.links ul {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.nav-link {
+  position: relative;
+  display: inline-block;
+  margin: 0 1rem;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  color: var(--texr-color);
+  font-weight: 500;
+  opacity: 0.9;
+  transition: 0.3s;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 10px;
+  border-radius: 5px;
+  background-color: var(--main-color-1);
+  bottom: 0;
+  left: -5px;
+  z-index: -1;
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.nav-link:hover {
+  color: var(--heading-color);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+  opacity: 0.2;
+}
+
+/* --------------- Showcase Area Styles ---------------*/
+.showcase-area {
+  padding: 120px 0;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.showcase-area .container {
+  display: grid;
+  grid-template-columns: 1fr 550px; /*平均分配分數*/
+  height: calc(100vh - 120px);
+  max-height: 600px;
+  align-items: center;
+}
+.showcase-area .sub-heading {
+  margin-bottom: 0.7rem;
+}
+
+.showcase-area .heading {
+  font-size: 3.5rem;
+}
+
+.showcase-area .text {
+  margin: 0.8rem 0;
+}
+
+.cta {
+  margin-top: 3.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.cta .shape {
+  width: 70px;
+  position: relative;
+  transform: translate(60%, 160%);
+  top: 50%;
+  bottom: 0;
+}
+
+.btn.secondary-btn {
+  position: relative;
+  background-color: transparent;
+  color: var(--main-color-1);
+  font-weight: 500;
+  font-size: 1.3rem;
+  letter-spacing: 0px;
+  border-bottom: 2.5px solid var(--main-color-2);
+  border-radius: 0px;
+  padding: 0.15rem 0;
+}
+
+.btn.secondary-btn::before {
+  content: "";
+  position: absolute;
+  width: 0%;
+  height: 2.5px;
+  bottom: -2.5px;
+  left: 0;
+  background-color: var(--main-color-1);
+  transition: 0.3s ease-in-out;
+}
+
+.btn.secondary-btn:hover::before {
+  width: 100%;
+}
+
+.showcase-image {
+  position: relative;
+  width: 100%;
+  min-height: calc(100%);
+  background-image: linear-gradient(/*漸變*/
+    124deg,
+    var(--main-color-1) 53%,
+    var(--main-color-2) 53%
+  );
+  margin-top: 0%;
+  border-radius: 0 0 80px 80px;
+}
+
+.dots {
+  width: 112px;
+}
+
+.square {
+  width: 70px;
+}
+
+.showcase-area .circle {
+  position: absolute;
+  width: 190px;
+  left: 0;
+  top: 80%;
+  transform: translate(-50%, -50%);
+}
+.showcase-area .dots {
+  position: absolute;
+  left: 100%;
+  top: 30%;
+  transform: translate(-50%, -50%);
+}
+.showcase-area .square {
+  position: absolute;
+  left: 25%;
+  bottom: 120px;
+  transform: translate(-50%, -50%);
+}
+
+.portfolio-header{
+  display: grid;
+  margin-bottom: 2rem;
+    grid-template-columns: 75% 20%;
+}
+
+.portfolio-title{
+  padding-bottom: 1rem;
+}
+
+.porfolio-gallery{
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(350px,1fr));/*自動填滿 最小350*/
+  gap: 2rem;
+}
+
+.prt-card{
+  border-radius: 15px;
+  overflow: hidden;/*超過不顯示*/
+  background-color: var(--bg-color-2);
+  height: 300px;
+  display: grid;
+  grid-template-rows: 1fr auto;/*寬 高*/
+}
+
+.prt-image{
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.prt-desc{
+  padding: 1.1rem 1.6rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.prt-desc h3{
+  font-size:1.05rem ;
+  color: var(--heading-color);
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.btn.secondary-btn.sm{
+  padding: 0.1rem 0.1rem;
+  font-size: 0.85rem;
+  border-bottom-width:2px ;
+}
+
+.btn.secondary-btn.sm::before{
+  height: 2px;
+  bottom: -2px;
+}
+
+.prt-overlay{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: transparent;/*透明*/
+  backdrop-filter: blur(0px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;/*不處李滑鼠事件*/
+}
+
+.prt-image:hover .prt-overlay{
+  pointer-events: all;
+  background-color: var(--bg-color-transparent);
+  backdrop-filter: blur(10px);
+}
+
+.prt-iocn{
+  color: hsl(var(--hue-1), 61%, 24%);
+  font-size: 1.1rem;
+  margin: 0 0.4rem;
+  background-color: var(--main-color-2);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;/*鼠標改*/
+  transform: translateY(15px);
+  opacity: 0;
+  transition: 0.9s;
+}
+
+.prt-iocn:hover{
+  background-color: var(--main-color-dark-2);
+}
+
+.prt-image:hover .prt-iocn{
+  opacity: 1;
+  transform: translateY(0px);
+  transform: 0.3s var(--i);
+}
+
+#input_text{
+    margin-top: 40px;
+}
+#input_button{
+    margin-top: 40px;
+}
